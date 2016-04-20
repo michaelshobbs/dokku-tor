@@ -6,8 +6,11 @@ dokku_tor_docker_args() {
   local APP="$1"
   local STDIN
 
+  local DOKKU_TOR_ROOT="$DOKKU_ROOT/.tor"
+  [[ -f "$DOKKU_TOR_ROOT/OPTS" ]] && source "$DOKKU_TOR_ROOT/OPTS"
+
   STDIN=$(cat)
-  local docker_args="$STDIN --link dokku.tor"
+  local docker_args="$STDIN --link ${DOKKU_TOR_CONTAINER_NAME}:dokku-tor"
   echo -n "$docker_args"
 }
 
