@@ -11,7 +11,7 @@ install_cmd() {
   mkdir -p "$DOKKU_TOR_ROOT"
   if [[ ! -f "$DOKKU_TOR_OPTIONS" ]]; then
     echo "export DOKKU_TOR_IMAGE=$DOKKU_TOR_IMAGE" > "$DOKKU_TOR_OPTIONS"
-    echo "export DOKKU_TOR_CONTAINER_NAME=dokku-tor" >> "$DOKKU_TOR_OPTIONS"
+    echo "export DOKKU_TOR_CONTAINER_NAME=dokku.tor" >> "$DOKKU_TOR_OPTIONS"
   fi
   chown -R dokku:dokku "$DOKKU_TOR_ROOT"
 
