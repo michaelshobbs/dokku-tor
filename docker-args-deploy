@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+
+dokku_tor_docker_args() {
+  local desc="dokku tor docker-args trigger"
+  local APP="$1"
+  local STDIN
+
+  STDIN=$(cat)
+  local docker_args="$STDIN --link dokku.tor"
+  echo -n "$docker_args"
+}
+
+dokku_tor_docker_args "$@"

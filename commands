@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+[[ " tor:info tor:destroy tor:port tor:server tor:start tor:stop tor:stream tor:update help " == *" $1 "* ]] || exit "$DOKKU_NOT_IMPLEMENTED_EXIT"
+
+PLUGIN_BASE_PATH="$PLUGIN_PATH"
+if [[ -n $DOKKU_API_VERSION ]]; then
+  PLUGIN_BASE_PATH="$PLUGIN_ENABLED_PATH"
+fi
+source "$PLUGIN_BASE_PATH/common/functions"
+
+DOKKU_TOR_ROOT="$DOKKU_ROOT/.tor"
+[[ -f "$DOKKU_TOR_OPTIONS/OPTS" ]] && source "$DOKKU_TOR_OPTIONS/OPTS"
+
+do_run() {
+  local CID
+  local DOKKU_TOR_SYSLOG_SERVER=${DOKKU_TOR_SYSLOG_SERVER:-"syslog://"}
+
+  CID=$(docker run -d --name="${DOKKU_TOR_CONTAINER_NAME}" \
+        --restart=unless-stopped "${DOKKU_TOR_IMAGE}")
+  echo "$CID" > "$DOKKU_TOR_ROOT/CONTAINER"
+}
+
+tor_info_cmd() {
+  local desc="shows info about tor config"
+  local cmd="tor:info"
+  local CID
+  if [[ -f "$DOKKU_TOR_ROOT/CONTAINER" ]]; then
+    CID=$(< "$DOKKU_TOR_ROOT/CONTAINER")
+    dokku_log_info2_quiet "tor status"
+
+    if (is_container_running "$CID"); then
+      dokku_log_verbose "running"
+    else
+      dokku_log_verbose "not running"
+    fi
+  else
+    dokku_log_warn "tor not deployed"
+  fi
+  if [[ -f "$DOKKU_TOR_ROOT/OPTS" ]]; then
+    dokku_log_info2_quiet "dokku-tor config"
+    while read -r line; do
+      [[ $line = *"="* ]] && dokku_log_verbose "$line" | sed -e "s:export ::g"
+    done < "$DOKKU_TOR_ROOT/OPTS"
+  fi
+}
+
+tor_destroy_cmd() {
+  local desc="destroys tor container"
+  local cmd="tor:destroy"
+  local CID
+  if [[ -f "$DOKKU_TOR_ROOT/CONTAINER" ]]; then
+    CID=$(< "$DOKKU_TOR_ROOT/CONTAINER")
+    docker stop "$CID" || true
+    docker rm -f "$CID" || true
+    rm -f "$DOKKU_TOR_ROOT/CONTAINER"
+  else
+    dokku_log_warn "tor not deployed"
+  fi
+}
+
+tor_start_cmd() {
+  local desc="starts tor container"
+  local cmd="tor:start"
+  if [[ ! -f "$DOKKU_TOR_ROOT/CONTAINER" ]]; then
+    if (docker inspect tor &> /dev/null); then
+      docker rm -f tor &>/dev/null || true
+    fi
+    do_run
+  else
+    local CID
+    CID=$(< "$DOKKU_TOR_ROOT/CONTAINER")
+    if (! is_container_running "$CID"); then
+      docker rm -f tor &>/dev/null || true
+      do_run
+    fi
+  fi
+}
+
+tor_stop_cmd() {
+  local desc="stops tor container"
+  local cmd="tor:stop"
+  if [[ -f "$DOKKU_TOR_ROOT/CONTAINER" ]]; then
+    local CID
+    CID=$(< "$DOKKU_TOR_ROOT/CONTAINER")
+    docker stop "$CID" || true
+  else
+    dokku_log_warn "tor not deployed"
+  fi
+}
+
+tor_update_cmd() {
+  local desc="updates tor docker images"
+  local cmd="tor:update"
+
+  tor_stop_cmd
+  tor_destroy_cmd
+  docker pull "$DOKKU_TOR_IMAGE"
+  tor_start_cmd
+}
+
+case "$1" in
+  tor:info)
+    tor_info_cmd "$@"
+    ;;
+
+  tor:destroy)
+    tor_destroy_cmd "$@"
+    ;;
+
+  tor:port)
+    tor_port_cmd "$@"
+    ;;
+
+  tor:server)
+    tor_server_cmd "$@"
+    ;;
+
+  tor:start)
+    tor_start_cmd "$@"
+    ;;
+
+  tor:stop)
+    tor_stop_cmd "$@"
+    ;;
+
+  tor:stream)
+    tor_stream_cmd "$@"
+    ;;
+
+  tor:update)
+    tor_update_cmd "$@"
+    ;;
+
+  help)
+    HELP=$(cat<<EOF
+    tor:destroy, destroy tor container
+    tor:info, show status of running container
+    tor:start, start tor container
+    tor:stop, stop tor container
+    tor:update, updates the tor docker image
+EOF
+)
+    if [[ -n $DOKKU_API_VERSION ]]; then
+      echo "$HELP"
+    else
+      cat && echo "$HELP"
+    fi
+  ;;
+
+  *)
+    exit "$DOKKU_NOT_IMPLEMENTED_EXIT"
+  ;;
+
+esac
