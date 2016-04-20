@@ -3,7 +3,7 @@ set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
 
 install_cmd() {
   local DOKKU_TOR_ROOT="$DOKKU_ROOT/.tor"
-  local DOKKU_TOR_OPTS="$DOKKU_TOR_ROOT/OPTS"
+  local DOKKU_TOR_OPTIONS="$DOKKU_TOR_ROOT/OPTS"
   local DOKKU_TOR_IMAGE_REPO="rdsubhas/tor-privoxy-alpine"
   local DOKKU_TOR_IMAGE_VERSION="latest"
   local DOKKU_TOR_IMAGE="${DOKKU_TOR_IMAGE_REPO}:${DOKKU_TOR_IMAGE_VERSION}"
