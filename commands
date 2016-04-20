@@ -9,7 +9,7 @@ fi
 source "$PLUGIN_BASE_PATH/common/functions"
 
 DOKKU_TOR_ROOT="$DOKKU_ROOT/.tor"
-[[ -f "$DOKKU_TOR_OPTIONS/OPTS" ]] && source "$DOKKU_TOR_OPTIONS/OPTS"
+[[ -f "$DOKKU_TOR_ROOT/OPTS" ]] && source "$DOKKU_TOR_ROOT/OPTS"
 
 do_run() {
   local CID
