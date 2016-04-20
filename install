@@ -3,18 +3,19 @@ set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
 
 install_cmd() {
   local DOKKU_TOR_ROOT="$DOKKU_ROOT/.tor"
-  local DOKKU_TOR_OPTIONS="$DOKKU_TOR_ROOT/OPTS"
   local DOKKU_TOR_IMAGE_REPO="rdsubhas/tor-privoxy-alpine"
   local DOKKU_TOR_IMAGE_VERSION="latest"
   local DOKKU_TOR_IMAGE="${DOKKU_TOR_IMAGE_REPO}:${DOKKU_TOR_IMAGE_VERSION}"
+  local DOKKU_TOR_OPTIONS="$DOKKU_TOR_ROOT/OPTS"
 
+  mkdir -p "$DOKKU_TOR_ROOT"
   if [[ ! -f "$DOKKU_TOR_OPTIONS" ]]; then
     echo "export DOKKU_TOR_IMAGE=$DOKKU_TOR_IMAGE" > "$DOKKU_TOR_OPTIONS"
-    echo "export DOKKU_TOR_CONTAINER_NAME=$DOKKU_TOR_CONTAINER_NAME" >> "$DOKKU_TOR_OPTIONS"
+    echo "export DOKKU_TOR_CONTAINER_NAME=dokku-tor" >> "$DOKKU_TOR_OPTIONS"
   fi
+  chown -R dokku:dokku "$DOKKU_TOR_ROOT"
 
   [[ -f "$DOKKU_TOR_OPTIONS/OPTS" ]] && source "$DOKKU_TOR_OPTIONS/OPTS"
-  mkdir -p "$DOKKU_TOR_ROOT"
   docker pull "$DOKKU_TOR_IMAGE"
 }
 
