@@ -11,11 +11,24 @@ source "$PLUGIN_BASE_PATH/common/functions"
 DOKKU_TOR_ROOT="$DOKKU_ROOT/.tor"
 [[ -f "$DOKKU_TOR_ROOT/OPTS" ]] && source "$DOKKU_TOR_ROOT/OPTS"
 
+get_hostname() {
+  local OPSWORKS_STACK_NAME; local HOSTNAME
+  OPSWORKS_STACK_NAME=$(grep "OpsWorks Stack:" /etc/motd 2>/dev/null || true)
+  if [[ -n "$OPSWORKS_STACK_NAME" ]]; then
+    HOSTNAME=$(echo "$OPSWORKS_STACK_NAME" "$(hostname)" | awk -F: '{ print $2 }' | xargs | tr '[:upper:]' '[:lower:]' | sed -e 's: :-:g')
+  else
+    HOSTNAME=$(hostname)
+  fi
+
+  echo "$HOSTNAME"
+}
+
 do_run() {
   local CID
   local DOKKU_TOR_SYSLOG_SERVER=${DOKKU_TOR_SYSLOG_SERVER:-"syslog://"}
 
   CID=$(docker run -d --name="${DOKKU_TOR_CONTAINER_NAME}" \
+        --hostname="$(get_hostname)" \
         --restart=unless-stopped "${DOKKU_TOR_IMAGE}")
   echo "$CID" > "$DOKKU_TOR_ROOT/CONTAINER"
 }
