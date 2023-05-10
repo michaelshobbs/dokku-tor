@@ -7,43 +7,27 @@ Requirements
 ------------
 * Dokku version `0.4.x` or higher
 
-Installation & Example
+Installation
 -----------
 ```
 # installation
-$ dokku plugin:install https://github.com/michaelshobbs/dokku-tor.git
-```
-```
-# example
-# rebuild or deploy your app
-$ dokku ps:restart test-app
-...snip...
-$ dokku enter test-app web
-# use $DOKKU_TOR_PORT_8118_TCP_ADDR and $DOKKU_TOR_PORT_8118_TCP_PORT in your app
-$ curl -i --proxy $DOKKU_TOR_PORT_8118_TCP_ADDR:$DOKKU_TOR_PORT_8118_TCP_PORT https://dokku.github.io/
-HTTP/1.1 200 Connection established
-Proxy-Agent: Privoxy/3.0.23
+dokku plugin:install https://github.com/michaelshobbs/dokku-tor.git
 
-HTTP/1.1 200 OK
-Server: GitHub.com
-Content-Type: text/html; charset=utf-8
-Last-Modified: Tue, 19 Apr 2016 18:59:11 GMT
-Access-Control-Allow-Origin: *
-Expires: Wed, 20 Apr 2016 21:20:31 GMT
-Cache-Control: max-age=600
-X-GitHub-Request-Id: B91F1124:2087:150FB42A:5717F047
-Content-Length: 3126
-Accept-Ranges: bytes
-Date: Wed, 20 Apr 2016 21:10:55 GMT
-Via: 1.1 varnish
-Age: 24
-Connection: keep-alive
-X-Served-By: cache-fra1222-FRA
-X-Cache: HIT
-X-Cache-Hits: 1
-X-Timer: S1461186655.352564,VS0,VE0
-Vary: Accept-Encoding
-X-Fastly-Request-ID: 5ff88c63578f8bc5caf0c83128a4d1c30b455473
+# run tor container
+dokku tor:start
+
+# restart or redeploy your Dokku app
+dokku ps:restart app
+```
+Once your app is connected to dokku-tor plugin, you will be able to use **$DOKKU_TOR_PORT_8118_TCP_ADDR** and **$DOKKU_TOR_PORT_8118_TCP_PORT** environment variables inside your Dokku app.
+
+Example
+-----------
+```
+dokku enter test-app web
+curl -i --proxy $DOKKU_TOR_PORT_8118_TCP_ADDR:$DOKKU_TOR_PORT_8118_TCP_PORT http://icanhazip.com/
+
+# The output will contain your new IP address which belongs to one of available Tor nodes.
 ```
 
 Commands
