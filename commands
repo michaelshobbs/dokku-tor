@@ -41,7 +41,7 @@ tor_info_cmd() {
     CID=$(< "$DOKKU_TOR_ROOT/CONTAINER")
     dokku_log_info2_quiet "tor status"
 
-    if (is_container_running "$CID"); then
+    if (is_container_status "$CID" "Running"); then
       dokku_log_verbose "running"
     else
       dokku_log_verbose "not running"
@@ -82,7 +82,7 @@ tor_start_cmd() {
   else
     local CID
     CID=$(< "$DOKKU_TOR_ROOT/CONTAINER")
-    if (! is_container_running "$CID"); then
+    if (! is_container_status "$CID" "Running"); then
       docker rm -f "${DOKKU_TOR_CONTAINER_NAME}" &>/dev/null || true
       do_run
     fi
